@@ -36,16 +36,12 @@ class _FirstScreenState extends State<FirstScreen> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
               'This is the first screen',
               style: TextStyle(color: Colors.black),
-            )
-                .animate()
-                .tint(color: Colors.red)
-                .then()
-                .shake(duration: Duration(seconds: 1)),
+            ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
@@ -56,7 +52,7 @@ class _FirstScreenState extends State<FirstScreen> {
                 );
               },
               child: Text('Go to Second Screen'),
-            ),
+            ).animate().then().shake(duration: Duration(seconds: 1)),
           ],
         ),
       ),
