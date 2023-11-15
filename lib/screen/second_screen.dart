@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:ffi';
+
+import 'dart:math';
 
 import 'package:count_down/count_downtimer.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_countdown_timer/countdown_timer_controller.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timer_count_down/timer_count_down.dart';
 
 class SecondScreen extends StatefulWidget {
   @override
@@ -13,18 +11,32 @@ class SecondScreen extends StatefulWidget {
 }
 
 class _SecondScreenState extends State<SecondScreen> {
-  static const countdownDuration = Duration(minutes: 5, seconds: 20);
+  Duration countdownDuration = Duration();
+
   List<Duration> durations = [];
   Timer? timer;
 
   @override
   void initState() {
     super.initState();
+
+    random();
     reset();
   }
 
+  int random1(int min, int max) {
+    return min + Random().nextInt(max - min);
+  }
+
+  void random() {
+    // Random random = Random();
+    int randomNumber = random1(5, 21); //random.nextInt(16) + 5;
+    countdownDuration = Duration(seconds: randomNumber);
+  }
+
   void reset() {
-    durations.clear();
+    //durations.clear();
+
     durations.add(countdownDuration);
     startTimer();
   }
@@ -43,11 +55,11 @@ class _SecondScreenState extends State<SecondScreen> {
     timer = Timer.periodic(Duration(seconds: 1), (_) => addTime());
   }
 
-  @override
+  /*@override
   void dispose() {
     timer?.cancel();
     super.dispose();
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -64,6 +76,7 @@ class _SecondScreenState extends State<SecondScreen> {
               ElevatedButton(
                 onPressed: () {
                   setState(() {
+                    random();
                     durations.add(countdownDuration); // Lägg till ny tid
                   });
                 },
@@ -104,7 +117,6 @@ class _SecondScreenState extends State<SecondScreen> {
           Container(
             width: 250,
             height: 100,
-     
             decoration: BoxDecoration(
               color: Colors.amberAccent,
               borderRadius: BorderRadius.circular(20),
@@ -112,14 +124,6 @@ class _SecondScreenState extends State<SecondScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text(
-                  time1,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 71,
-                  ),
-                ),
                 Text(
                   time2,
                   style: const TextStyle(
