@@ -14,29 +14,28 @@ class SecondScreen extends StatefulWidget {
 
 class _SecondScreenState extends State<SecondScreen> {
   static const countdownDuration = Duration(minutes: 5, seconds: 20);
-  Duration duration = Duration();
+  List<Duration> durations = [];
   Timer? timer;
-  bool isCountdown = true;
+
   @override
   void initState() {
     super.initState();
-    startTimer();
     reset();
   }
 
   void reset() {
-    if (isCountdown) {
-      setState(() => duration = countdownDuration);
-    } else {
-      setState(() => duration = Duration());
-    }
+    durations.clear();
+    durations.add(countdownDuration);
+    startTimer();
   }
 
   void addTime() {
-    final addSeconds = isCountdown ? -1 : 1;
     setState(() {
-      final seconds = duration.inSeconds + addSeconds;
-      duration = Duration(seconds: seconds);
+      for (int i = 0; i < durations.length; i++) {
+        if (durations[i].inSeconds > 0) {
+          durations[i] = Duration(seconds: durations[i].inSeconds - 1);
+        } else {}
+      }
     });
   }
 
@@ -45,49 +44,93 @@ class _SecondScreenState extends State<SecondScreen> {
   }
 
   @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: Text('Second Screen'),
         ),
         body: Center(
-          child: BuildTime(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: BuildTime(),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    durations.add(countdownDuration); // Lägg till ny tid
+                  });
+                },
+                child: Text('Start New Timer'),
+              ),
+            ],
+          ),
         ),
       );
 
   Widget BuildTime() {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return ListView.builder(
+      itemCount: durations.length,
+      itemBuilder: (BuildContext context, int index) {
+        String twoDigits(int n) => n.toString().padLeft(2, '0');
+        final minutes = twoDigits(durations[index].inMinutes.remainder(60));
+        final seconds = twoDigits(durations[index].inSeconds.remainder(60));
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        buildTimeCard(time: minutes, header: 'Minutes'),
-        const SizedBox(width: 8),
-        buildTimeCard(time: seconds, header: 'Seconds'),
-      ],
+        return buildTimeCard(
+          time1: minutes,
+          header1: 'Minutes',
+          time2: seconds,
+          header2: 'Seconds',
+        );
+      },
     );
   }
 
-  Widget buildTimeCard({required String time, required String header}) =>
-      Column(
+  Widget buildTimeCard({
+    required String time1,
+    required String header1,
+    required String time2,
+    required String header2,
+  }) =>
+      Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-              alignment: Alignment.center,
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                  color: Colors.amberAccent,
-                  borderRadius: BorderRadius.circular(20)),
-              child: Text(time,
+            width: 250,
+            height: 100,
+     
+            decoration: BoxDecoration(
+              color: Colors.amberAccent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text(
+                  time1,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
-                    fontSize: 72,
-                  ))),
-          const SizedBox(height: 24),
-          Text(header),
+                    fontSize: 71,
+                  ),
+                ),
+                Text(
+                  time2,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                    fontSize: 71,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       );
 }
