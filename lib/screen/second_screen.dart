@@ -2,16 +2,17 @@ import 'dart:async';
 
 import 'dart:math';
 
-import 'package:count_down/count_downtimer.dart';
 import 'package:flutter/material.dart';
 
 class SecondScreen extends StatefulWidget {
+  const SecondScreen({super.key});
+
   @override
   _SecondScreenState createState() => _SecondScreenState();
 }
 
 class _SecondScreenState extends State<SecondScreen> {
-  Duration countdownDuration = Duration();
+  Duration countdownDuration = const Duration();
 
   List<Duration> durations = [];
   Timer? timer;
@@ -30,7 +31,7 @@ class _SecondScreenState extends State<SecondScreen> {
 
   void random() {
     // Random random = Random();
-    int randomNumber = random1(5, 21); //random.nextInt(16) + 5;
+    int randomNumber = random1(5, 21);
     countdownDuration = Duration(seconds: randomNumber);
   }
 
@@ -55,11 +56,11 @@ class _SecondScreenState extends State<SecondScreen> {
     timer = Timer.periodic(Duration(seconds: 1), (_) => addTime());
   }
 
-  /*@override
+  @override
   void dispose() {
     timer?.cancel();
     super.dispose();
-  }*/
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -69,18 +70,39 @@ class _SecondScreenState extends State<SecondScreen> {
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            // crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
                 child: BuildTime(),
               ),
-              ElevatedButton(
+              ElevatedButton.icon(
                 onPressed: () {
                   setState(() {
                     random();
-                    durations.add(countdownDuration); // Lägg till ny tid
+                    durations.add(countdownDuration);
+
+                    // Lägg till ny tid
                   });
                 },
-                child: Text('Start New Timer'),
+                style: ButtonStyle(
+                  padding: MaterialStateProperty.all<EdgeInsets>(
+                    const EdgeInsets.all(16.0),
+                    // Ange önskad utfyllnad runt texten
+                  ),
+                  elevation: MaterialStateProperty.all<double>(15.0),
+                  shadowColor: MaterialStateProperty.all<Color>(
+                      Colors.grey), // Ange önskad skuggfärg
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0)),
+                  ),
+
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                    Colors.black,
+                  ), // Ange önskad färg
+                ),
+                icon: const Icon(Icons.timer), label: Text('Start New Timer'),
+                //   child: Text('Start New Timer'),
               ),
             ],
           ),
@@ -114,25 +136,44 @@ class _SecondScreenState extends State<SecondScreen> {
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 250,
-            height: 100,
-            decoration: BoxDecoration(
-              color: Colors.amberAccent,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  time2,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 71,
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.only(right: 4, left: 4, top: 5),
+              padding: const EdgeInsets.all(3.0),
+              decoration: BoxDecoration(
+                color: Colors.amberAccent,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  FloatingActionButton(
+                    onPressed: () {
+                      // Kod för att utföra handlingen när knappen trycks
+                      // t.ex. navigering, lägg till ett objekt, visa en dialog, etc.
+                    },
+
+                    child: Icon(Icons.play_arrow), // Ikon som visas på knappen
                   ),
-                ),
-              ],
+                  Text(
+                    time2,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 71,
+                    ),
+                  ),
+                  FloatingActionButton(
+                    onPressed: () {
+                      // Kod för att utföra handlingen när knappen trycks
+                      // t.ex. navigering, lägg till ett objekt, visa en dialog, etc.
+                    },
+                    tooltip: 'Lägg till',
+                    child: Icon(Icons.stop), // Ikon som visas på knappen
+                    backgroundColor: Colors.red,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
