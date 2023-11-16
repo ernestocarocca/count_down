@@ -13,7 +13,7 @@ class SecondScreen extends StatefulWidget {
 
 class _SecondScreenState extends State<SecondScreen> {
   Duration countdownDuration = const Duration();
-
+  bool done = false;
   List<Duration> durations = [];
   Timer? timer;
 
@@ -36,7 +36,7 @@ class _SecondScreenState extends State<SecondScreen> {
   }
 
   void reset() {
-    //durations.clear();
+    durations.clear();
 
     durations.add(countdownDuration);
     startTimer();
@@ -47,7 +47,9 @@ class _SecondScreenState extends State<SecondScreen> {
       for (int i = 0; i < durations.length; i++) {
         if (durations[i].inSeconds > 0) {
           durations[i] = Duration(seconds: durations[i].inSeconds - 1);
-        } else {}
+        } else {
+          done = true;
+        }
       }
     });
   }
@@ -113,9 +115,13 @@ class _SecondScreenState extends State<SecondScreen> {
     return ListView.builder(
       itemCount: durations.length,
       itemBuilder: (BuildContext context, int index) {
-        String twoDigits(int n) => n.toString().padLeft(2, '0');
-        final minutes = twoDigits(durations[index].inMinutes.remainder(60));
-        final seconds = twoDigits(durations[index].inSeconds.remainder(60));
+        String twoDigits(int n) => n.toString().padLeft(2, '');
+        var minutes = twoDigits(durations[index].inMinutes.remainder(60));
+        var seconds = twoDigits(durations[index].inSeconds.remainder(60));
+        // countdown zero then = 'Done'
+        if (durations[index].inSeconds <= 0) {
+          seconds = 'Done';
+        }
 
         return buildTimeCard(
           time1: minutes,
@@ -148,12 +154,11 @@ class _SecondScreenState extends State<SecondScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   FloatingActionButton(
-                    onPressed: () {
-                      // Kod för att utföra handlingen när knappen trycks
-                      // t.ex. navigering, lägg till ett objekt, visa en dialog, etc.
-                    },
+                    onPressed: () {},
 
-                    child: Icon(Icons.play_arrow), // Ikon som visas på knappen
+                    child: Icon(Icons.play_arrow),
+                    backgroundColor: Colors.green,
+                    elevation: 35, // Ikon som visas på knappen
                   ),
                   Text(
                     time2,
@@ -164,6 +169,8 @@ class _SecondScreenState extends State<SecondScreen> {
                     ),
                   ),
                   FloatingActionButton(
+                    elevation: 35,
+
                     onPressed: () {
                       // Kod för att utföra handlingen när knappen trycks
                       // t.ex. navigering, lägg till ett objekt, visa en dialog, etc.

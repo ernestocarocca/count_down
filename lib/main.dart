@@ -1,19 +1,33 @@
-import 'package:count_down/screen/first_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:count_down/screen/first_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
 
-  // This widget is the root of your application.
+class _MyAppState extends State<MyApp> {
+  bool useDarmode = false;
+
+  void toggleTheme() {
+    setState(() {
+      useDarmode = !useDarmode;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: useDarmode ? ThemeData.dark() : ThemeData.light(),
       debugShowCheckedModeBanner: false,
-      home: FirstScreen(),
+      home: FirstScreen(
+        useDarmode: useDarmode,
+        toggleTheme: toggleTheme,
+      ),
     );
   }
 }
