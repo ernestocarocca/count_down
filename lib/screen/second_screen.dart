@@ -27,22 +27,26 @@ class _SecondScreenState extends State<SecondScreen> {
     super.initState();
 
     random();
-    //  reset();
+    reset();
     loadSavedTime();
-
-    setState(() {});
   }
 
-  void loadSavedTime() async {
-    final List<Duration> savedTimes = TimePrefereces.getTimeStopped();
-    setState(() {
-      if (savedTimes.isNotEmpty) {
-        stopTime = savedTimes[
-            0]; // Här antar jag att du vill använda den första sparade tiden
-        countdownDuration = stopTime;
-        print('Saved time: $stopTime');
-      }
-    });
+ void loadSavedTime() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? savedTimes = prefs.getStringList('savedTimes');
+    if (savedTimes != null && savedTimes.isNotEmpty) {
+      setState(() {
+        durations = savedTimes
+            .map((timeString) {
+              // Om sparad tid är 'Done', sätt den till 0
+              if (timeString == 'Done') {
+                return Duration.zero;
+              }
+              return Duration(seconds: int.parse(timeString));
+            })
+            .toList();
+      });
+    }
   }
 
   int random1(int min, int max) {
@@ -82,23 +86,35 @@ class _SecondScreenState extends State<SecondScreen> {
     }
   }
 
-void stopTimer() async {
-  if (timer != null) {
-    timer!.cancel();
-    for (var duration in durations) {
-      await TimePrefereces.setTime(duration);
+  void stopTimer() async {
+    if (timer != null) {
+      timer!.cancel();
+      for (var duration in durations) {
+        await TimePrefereces.setTime(duration);
+      }
+      isRunning = false;
+      print('Saved all times: $durations');
     }
-    isRunning = false;
-    print('Saved all times: $durations');
   }
-}
-
 
   @override
-/*  void dispose() {
-    timer?.cancel();
+  void dispose() {
     super.dispose();
-  }*/
+    savedTime;
+  }
+
+   void saveTimes() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> timeStrings = durations.map((duration) {
+      // Om tid är 0, spara som 'Done', annars spara antalet sekunder
+      if (duration.inSeconds <= 0) {
+        return 'Done';
+      }
+      return duration.inSeconds.toString();
+    }).toList();
+    await prefs.setStringList('savedTimes', timeStrings);
+  }
+
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -118,6 +134,7 @@ void stopTimer() async {
                   setState(() {
                     random();
                     durations.add(countdownDuration);
+                    saveTimes();
 
                     // Lägg till ny tid
                   });
