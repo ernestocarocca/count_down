@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'dart:math';
 
+import 'package:count_down/count_down_pref.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SecondScreen extends StatefulWidget {
   const SecondScreen({super.key});
@@ -12,9 +14,12 @@ class SecondScreen extends StatefulWidget {
 }
 
 class _SecondScreenState extends State<SecondScreen> {
+  var savedTime = TimePrefereces.getTimeStopped();
   Duration countdownDuration = const Duration();
   bool done = false;
   List<Duration> durations = [];
+  Duration stopTime = const Duration();
+  bool isRunning = false;
   Timer? timer;
 
   @override
@@ -22,7 +27,22 @@ class _SecondScreenState extends State<SecondScreen> {
     super.initState();
 
     random();
-    reset();
+    //  reset();
+    loadSavedTime();
+
+    setState(() {});
+  }
+
+  void loadSavedTime() async {
+    final List<Duration> savedTimes = TimePrefereces.getTimeStopped();
+    setState(() {
+      if (savedTimes.isNotEmpty) {
+        stopTime = savedTimes[
+            0]; // Här antar jag att du vill använda den första sparade tiden
+        countdownDuration = stopTime;
+        print('Saved time: $stopTime');
+      }
+    });
   }
 
   int random1(int min, int max) {
@@ -55,14 +75,30 @@ class _SecondScreenState extends State<SecondScreen> {
   }
 
   void startTimer() {
-    timer = Timer.periodic(Duration(seconds: 1), (_) => addTime());
+    if (!isRunning) {
+      isRunning = true;
+      timer = Timer.periodic(Duration(seconds: 1), (_) => addTime());
+      print('Saved time: $stopTime');
+    }
   }
 
+void stopTimer() async {
+  if (timer != null) {
+    timer!.cancel();
+    for (var duration in durations) {
+      await TimePrefereces.setTime(duration);
+    }
+    isRunning = false;
+    print('Saved all times: $durations');
+  }
+}
+
+
   @override
-  void dispose() {
+/*  void dispose() {
     timer?.cancel();
     super.dispose();
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -154,7 +190,9 @@ class _SecondScreenState extends State<SecondScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   FloatingActionButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      isRunning ? null : startTimer();
+                    },
 
                     child: Icon(Icons.play_arrow),
                     backgroundColor: Colors.green,
@@ -171,10 +209,8 @@ class _SecondScreenState extends State<SecondScreen> {
                   FloatingActionButton(
                     elevation: 35,
 
-                    onPressed: () {
-                      // Kod för att utföra handlingen när knappen trycks
-                      // t.ex. navigering, lägg till ett objekt, visa en dialog, etc.
-                    },
+                    onPressed: isRunning ? stopTimer : null,
+
                     tooltip: 'Lägg till',
                     child: Icon(Icons.stop), // Ikon som visas på knappen
                     backgroundColor: Colors.red,

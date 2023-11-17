@@ -58,7 +58,7 @@ class FirstScreen extends StatelessWidget {
                     'This is the first screen',
                     style: TextStyle(color: Colors.black),
                   ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 // Navigera till andra skärmen när knappen trycks

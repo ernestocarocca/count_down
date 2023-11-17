@@ -1,7 +1,9 @@
+import 'package:count_down/count_down_pref.dart';
 import 'package:flutter/material.dart';
 import 'package:count_down/screen/first_screen.dart';
 
 void main() {
+  TimePrefereces.init;
   runApp(MyApp());
 }
 
