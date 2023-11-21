@@ -85,13 +85,13 @@ class _SecondScreenState extends State<SecondScreen> {
   void startTimer(Duration duration, int index) async {
     if (!isRunning) {
       isRunning = true;
-      loadSavedTime();
+     // loadSavedTime();
       countdownDuration = duration;
 
       if (duration == Duration.zero) {
         random(); //
       } else {
-        //  countdownDuration = duration;
+         countdownDuration = duration;
       }
       timer =
           Timer.periodic(const Duration(seconds: 1), (_) => updateTimer(index));
@@ -177,7 +177,7 @@ class _SecondScreenState extends State<SecondScreen> {
                       startTimer(countdownDuration, durations.length - 1);
                     }
 
-                    saveTimes();
+                   // saveTimes();
 
                     // Lägg till ny tid
                   });
