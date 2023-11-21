@@ -1,7 +1,6 @@
 import 'dart:async';
-
+import 'dart:core';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -32,7 +31,7 @@ class _SecondScreenState extends State<SecondScreen> {
   }
 
   void loadSavedTime() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = SharedPreferencesManager._preferences;
     List<String>? savedTimes = prefs.getStringList('savedTime');
     print(savedTimes);
     if (savedTimes != null && savedTimes.isNotEmpty) {
@@ -58,7 +57,7 @@ class _SecondScreenState extends State<SecondScreen> {
   }
 
   void reset() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = SharedPreferencesManager._preferences;
     prefs.setStringList('savedTime', []);
     setState(() {
       durations.clear();
@@ -76,7 +75,7 @@ class _SecondScreenState extends State<SecondScreen> {
           durations[i] = Duration(seconds: durations[i].inSeconds - 1);
           print(durations);
         } else {
-          durations[i] = Duration.zero; 
+          durations[i] = Duration.zero;
           done = true;
         }
       }
@@ -86,13 +85,16 @@ class _SecondScreenState extends State<SecondScreen> {
   void startTimer(Duration duration, int index) async {
     if (!isRunning) {
       isRunning = true;
+      loadSavedTime();
+      countdownDuration = duration;
+
       if (duration == Duration.zero) {
-        random(); // 
+        random(); //
       } else {
-        countdownDuration = duration;
+        //  countdownDuration = duration;
       }
-      timer = await Timer.periodic(
-          const Duration(seconds: 1), (_) => updateTimer(index));
+      timer =
+          Timer.periodic(const Duration(seconds: 1), (_) => updateTimer(index));
     }
   }
 
@@ -108,10 +110,11 @@ class _SecondScreenState extends State<SecondScreen> {
 
   void stopTimer(int index) async {
     // saves data in device ?
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = SharedPreferencesManager._preferences;
+    isRunning = false;
     if (timer != null) {
       timer!.cancel();
-  
+
       List<String> newDurationList = [];
 
       for (Duration d in durations) {
@@ -132,17 +135,15 @@ class _SecondScreenState extends State<SecondScreen> {
   }
 
   void saveTimes() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = SharedPreferencesManager._preferences;
 
     List<String> timeStrings = durations.map((duration) {
-  
       if (duration.inSeconds <= 0) {
         return 'Done';
       }
       return duration.inSeconds.toString();
     }).toList();
     await prefs.setStringList('savedTimes', timeStrings);
-
 
     setState(() {});
   }
@@ -162,7 +163,6 @@ class _SecondScreenState extends State<SecondScreen> {
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-     
             children: [
               Expanded(
                 child: BuildTime(),
@@ -177,7 +177,7 @@ class _SecondScreenState extends State<SecondScreen> {
                       startTimer(countdownDuration, durations.length - 1);
                     }
 
-                      saveTimes();
+                    saveTimes();
 
                     // Lägg till ny tid
                   });
@@ -185,7 +185,6 @@ class _SecondScreenState extends State<SecondScreen> {
                 style: ButtonStyle(
                   padding: MaterialStateProperty.all<EdgeInsets>(
                     const EdgeInsets.all(16.0),
-                 
                   ),
                   elevation: MaterialStateProperty.all<double>(15.0),
                   shadowColor: MaterialStateProperty.all<Color>(
@@ -197,10 +196,10 @@ class _SecondScreenState extends State<SecondScreen> {
 
                   backgroundColor: MaterialStateProperty.all<Color>(
                     Colors.black,
-                  ), // 
+                  ), //
                 ),
                 icon: const Icon(Icons.timer), label: Text('Start New Timer'),
-                //   
+                //
               ),
             ],
           ),
@@ -253,10 +252,6 @@ class _SecondScreenState extends State<SecondScreen> {
                 children: [
                   FloatingActionButton(
                       onPressed: () async {
-                        setState(() {
-                          isRunning;
-                        });
-
                         startTimer(countdownDuration, index);
                       },
                       backgroundColor: Colors.green,
@@ -274,7 +269,9 @@ class _SecondScreenState extends State<SecondScreen> {
                   FloatingActionButton(
                     elevation: 35,
 
-                    onPressed: isRunning ? () => stopTimer(index) : null,
+                    onPressed: () async {
+                      stopTimer(index);
+                    },
 
                     tooltip: 'Lägg till',
                     child: Icon(Icons.stop), // Ikon som visas på knappen
@@ -287,4 +284,16 @@ class _SecondScreenState extends State<SecondScreen> {
           )
         ],
       );
+}
+
+class SharedPreferencesManager {
+  static late SharedPreferences _preferences;
+
+  static Future<void> init() async {
+    _preferences = await SharedPreferences.getInstance();
+  }
+
+  static SharedPreferences get preferences {
+    return _preferences;
+  }
 }
