@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'dart:math';
 
-import 'package:count_down/count_down_pref.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,7 +13,6 @@ class SecondScreen extends StatefulWidget {
 }
 
 class _SecondScreenState extends State<SecondScreen> {
-  var savedTime = TimePrefereces.getTimeStopped();
   Duration countdownDuration = const Duration();
   bool done = false;
   List<Duration> durations = [];
@@ -25,45 +23,50 @@ class _SecondScreenState extends State<SecondScreen> {
   @override
   void initState() {
     super.initState();
+    // durations = TimePrefereces.getTimeStopped();
 
-    random();
-    reset();
+    //durations.add(countdownDuration);
+
     loadSavedTime();
+    print('init duration $durations');
   }
 
- void loadSavedTime() async {
+  void loadSavedTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? savedTimes = prefs.getStringList('savedTimes');
+    List<String>? savedTimes = prefs.getStringList('savedTime');
+    print(savedTimes);
     if (savedTimes != null && savedTimes.isNotEmpty) {
       setState(() {
-        durations = savedTimes
-            .map((timeString) {
-              // Om sparad tid är 'Done', sätt den till 0
-              if (timeString == 'Done') {
-                return Duration.zero;
-              }
-              return Duration(seconds: int.parse(timeString));
-            })
-            .toList();
+        durations = savedTimes.map((timeString) {
+          // Om sparad tid är 'Done', sätt den till 0
+          if (timeString == 'Done') {
+            return Duration.zero;
+          }
+          return Duration(seconds: int.parse(timeString));
+        }).toList();
       });
     }
   }
 
-  int random1(int min, int max) {
-    return min + Random().nextInt(max - min);
-  }
-
   void random() {
-    // Random random = Random();
+    int random1(int min, int max) {
+      return min + Random().nextInt(max - min);
+    }
+
     int randomNumber = random1(5, 21);
     countdownDuration = Duration(seconds: randomNumber);
   }
 
-  void reset() {
-    durations.clear();
+  void reset() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('savedTime', []);
+    setState(() {
+      durations.clear();
+
+      done = false;
+    });
 
     durations.add(countdownDuration);
-    startTimer();
   }
 
   void addTime() {
@@ -71,60 +74,95 @@ class _SecondScreenState extends State<SecondScreen> {
       for (int i = 0; i < durations.length; i++) {
         if (durations[i].inSeconds > 0) {
           durations[i] = Duration(seconds: durations[i].inSeconds - 1);
+          print(durations);
         } else {
+          durations[i] = Duration.zero; 
           done = true;
         }
       }
     });
   }
 
-  void startTimer() {
+  void startTimer(Duration duration, int index) async {
     if (!isRunning) {
       isRunning = true;
-      timer = Timer.periodic(Duration(seconds: 1), (_) => addTime());
-      print('Saved time: $stopTime');
+      if (duration == Duration.zero) {
+        random(); // 
+      } else {
+        countdownDuration = duration;
+      }
+      timer = await Timer.periodic(
+          const Duration(seconds: 1), (_) => updateTimer(index));
     }
   }
 
-  void stopTimer() async {
+  void updateTimer(int index) {
+    setState(() {
+      if (durations[index].inSeconds > 0) {
+        durations[index] = Duration(seconds: durations[index].inSeconds - 1);
+      } else {
+        stopTimer(index);
+      }
+    });
+  }
+
+  void stopTimer(int index) async {
+    // saves data in device ?
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     if (timer != null) {
       timer!.cancel();
-      for (var duration in durations) {
-        await TimePrefereces.setTime(duration);
+  
+      List<String> newDurationList = [];
+
+      for (Duration d in durations) {
+        newDurationList.add(d.inSeconds.toString());
       }
-      isRunning = false;
-      print('Saved all times: $durations');
+
+      prefs.setStringList('savedTime', newDurationList);
+      print(' pref setTime  $prefs');
+      print(newDurationList);
+
+      print('Saved time at index $index: ${durations[index]}');
     }
   }
 
   @override
   void dispose() {
     super.dispose();
-    savedTime;
   }
 
-   void saveTimes() async {
+  void saveTimes() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
     List<String> timeStrings = durations.map((duration) {
-      // Om tid är 0, spara som 'Done', annars spara antalet sekunder
+  
       if (duration.inSeconds <= 0) {
         return 'Done';
       }
       return duration.inSeconds.toString();
     }).toList();
     await prefs.setStringList('savedTimes', timeStrings);
-  }
 
+
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: Text('Second Screen'),
+          actions: [
+            IconButton(
+              onPressed: reset,
+              icon: const Icon(Icons
+                  .clear), // Här använder du en "clear" ikon, kan ändras till vad du vill
+            ),
+          ],
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            // crossAxisAlignment: CrossAxisAlignment.stretch,
+     
             children: [
               Expanded(
                 child: BuildTime(),
@@ -134,7 +172,12 @@ class _SecondScreenState extends State<SecondScreen> {
                   setState(() {
                     random();
                     durations.add(countdownDuration);
-                    saveTimes();
+
+                    if (durations.isNotEmpty) {
+                      startTimer(countdownDuration, durations.length - 1);
+                    }
+
+                      saveTimes();
 
                     // Lägg till ny tid
                   });
@@ -142,7 +185,7 @@ class _SecondScreenState extends State<SecondScreen> {
                 style: ButtonStyle(
                   padding: MaterialStateProperty.all<EdgeInsets>(
                     const EdgeInsets.all(16.0),
-                    // Ange önskad utfyllnad runt texten
+                 
                   ),
                   elevation: MaterialStateProperty.all<double>(15.0),
                   shadowColor: MaterialStateProperty.all<Color>(
@@ -154,10 +197,10 @@ class _SecondScreenState extends State<SecondScreen> {
 
                   backgroundColor: MaterialStateProperty.all<Color>(
                     Colors.black,
-                  ), // Ange önskad färg
+                  ), // 
                 ),
                 icon: const Icon(Icons.timer), label: Text('Start New Timer'),
-                //   child: Text('Start New Timer'),
+                //   
               ),
             ],
           ),
@@ -181,6 +224,7 @@ class _SecondScreenState extends State<SecondScreen> {
           header1: 'Minutes',
           time2: seconds,
           header2: 'Seconds',
+          index: index,
         );
       },
     );
@@ -191,6 +235,7 @@ class _SecondScreenState extends State<SecondScreen> {
     required String header1,
     required String time2,
     required String header2,
+    required int index,
   }) =>
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -207,14 +252,17 @@ class _SecondScreenState extends State<SecondScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   FloatingActionButton(
-                    onPressed: () async {
-                      isRunning ? null : startTimer();
-                    },
+                      onPressed: () async {
+                        setState(() {
+                          isRunning;
+                        });
 
-                    child: Icon(Icons.play_arrow),
-                    backgroundColor: Colors.green,
-                    elevation: 35, // Ikon som visas på knappen
-                  ),
+                        startTimer(countdownDuration, index);
+                      },
+                      backgroundColor: Colors.green,
+                      elevation: 35, // Ikon som visas på knappen
+                      heroTag: 'playButton_$index',
+                      child: const Icon(Icons.play_arrow)),
                   Text(
                     time2,
                     style: const TextStyle(
@@ -226,16 +274,17 @@ class _SecondScreenState extends State<SecondScreen> {
                   FloatingActionButton(
                     elevation: 35,
 
-                    onPressed: isRunning ? stopTimer : null,
+                    onPressed: isRunning ? () => stopTimer(index) : null,
 
                     tooltip: 'Lägg till',
                     child: Icon(Icons.stop), // Ikon som visas på knappen
                     backgroundColor: Colors.red,
+                    heroTag: 'stopButton_$index',
                   ),
                 ],
               ),
             ),
-          ),
+          )
         ],
       );
 }
