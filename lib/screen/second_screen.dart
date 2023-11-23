@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:core';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SecondScreen extends StatefulWidget {
@@ -22,9 +23,6 @@ class _SecondScreenState extends State<SecondScreen> {
   @override
   void initState() {
     super.initState();
-    // durations = TimePrefereces.getTimeStopped();
-
-    //durations.add(countdownDuration);
 
     loadSavedTime();
     print('init duration $durations');
@@ -85,13 +83,13 @@ class _SecondScreenState extends State<SecondScreen> {
   void startTimer(Duration duration, int index) async {
     if (!isRunning) {
       isRunning = true;
-     // loadSavedTime();
+      // loadSavedTime();
       countdownDuration = duration;
 
       if (duration == Duration.zero) {
         random(); //
       } else {
-         countdownDuration = duration;
+        countdownDuration = duration;
       }
       timer =
           Timer.periodic(const Duration(seconds: 1), (_) => updateTimer(index));
@@ -167,39 +165,51 @@ class _SecondScreenState extends State<SecondScreen> {
               Expanded(
                 child: BuildTime(),
               ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    random();
-                    durations.add(countdownDuration);
+              Padding(
+                padding: const EdgeInsets.only(bottom: 18.00),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      random();
+                      durations.add(countdownDuration);
 
-                    if (durations.isNotEmpty) {
-                      startTimer(countdownDuration, durations.length - 1);
-                    }
+                      if (durations.isNotEmpty) {
+                        startTimer(countdownDuration, durations.length - 1);
+                      }
 
-                   // saveTimes();
+                      // saveTimes();
 
-                    // Lägg till ny tid
-                  });
-                },
-                style: ButtonStyle(
-                  padding: MaterialStateProperty.all<EdgeInsets>(
-                    const EdgeInsets.all(16.0),
+                      // Lägg till ny tid
+                    });
+                  },
+
+                  style: ButtonStyle(
+                    padding: MaterialStateProperty.all<EdgeInsets>(
+                      const EdgeInsets.all(16.0),
+                    ),
+
+                    elevation: MaterialStateProperty.all<double>(15.0),
+                    shadowColor: MaterialStateProperty.all<Color>(
+                        Colors.grey), // Ange önskad skuggfärg
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0)),
+                    ),
+
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      Colors.black,
+                    ), //
                   ),
-                  elevation: MaterialStateProperty.all<double>(15.0),
-                  shadowColor: MaterialStateProperty.all<Color>(
-                      Colors.grey), // Ange önskad skuggfärg
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0)),
+                  icon: const Icon(
+                    Icons.timer,
+                    color: Colors.green,
                   ),
-
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                    Colors.black,
-                  ), //
+                  label: const Text(
+                    'Start New Timer',
+                    style: TextStyle(color: Colors.green),
+                  ),
+                  //
                 ),
-                icon: const Icon(Icons.timer), label: Text('Start New Timer'),
-                //
               ),
             ],
           ),
@@ -241,7 +251,7 @@ class _SecondScreenState extends State<SecondScreen> {
         children: [
           Expanded(
             child: Container(
-              margin: EdgeInsets.only(right: 4, left: 4, top: 5),
+              margin: const EdgeInsets.only(right: 4, left: 4, top: 5),
               padding: const EdgeInsets.all(3.0),
               decoration: BoxDecoration(
                 color: Colors.amberAccent,

@@ -13,6 +13,8 @@ class FirstScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        
+        iconTheme: IconThemeData(color: Colors.deepOrange),
         title: const Text('First Screen'),
         actions: [
           IconButton(
@@ -42,7 +44,7 @@ class FirstScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => const SecondScreen()),
                 );
               },
-              child: const Text('Go to Second Screen'),
+              child: const Text('Go to Second Screen',style: TextStyle(color: Colors.green),),
             )
                 .animate()
                 .then()
