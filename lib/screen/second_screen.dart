@@ -81,9 +81,9 @@ class _SecondScreenState extends State<SecondScreen> {
   }
 
   void startTimer(Duration duration, int index) async {
-    if (!isRunning) {
-      isRunning = true;
-      // loadSavedTime();
+    if (countdownDuration != null) {
+      // isRunning = true;
+
       countdownDuration = duration;
 
       if (duration == Duration.zero) {
@@ -124,6 +124,22 @@ class _SecondScreenState extends State<SecondScreen> {
       print(newDurationList);
 
       print('Saved time at index $index: ${durations[index]}');
+    }
+  }
+
+  void restartSavedTimers() async {
+    SharedPreferences prefs = SharedPreferencesManager._preferences;
+    List<String>? savedTimes = prefs.getStringList('savedTime');
+
+    if (savedTimes != null && savedTimes.isNotEmpty) {
+      setState(() {
+        durations.clear();
+        for (String savedTime in savedTimes) {
+          Duration savedDuration = Duration(seconds: int.parse(savedTime));
+          durations.add(savedDuration);
+          startTimer(savedDuration, durations.indexOf(savedDuration));
+        }
+      });
     }
   }
 
@@ -262,6 +278,7 @@ class _SecondScreenState extends State<SecondScreen> {
                 children: [
                   FloatingActionButton(
                       onPressed: () async {
+                        restartSavedTimers;
                         startTimer(countdownDuration, index);
                       },
                       backgroundColor: Colors.green,
