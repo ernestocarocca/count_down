@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:core';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SecondScreen extends StatefulWidget {
@@ -13,29 +12,33 @@ class SecondScreen extends StatefulWidget {
 }
 
 class _SecondScreenState extends State<SecondScreen> {
-  Duration countdownDuration = const Duration();
-  bool done = false;
   List<Duration> durations = [];
-  Duration stopTime = const Duration();
-  bool isRunning = false;
-  Timer? timer;
+  List<Timer> timers = [];
 
   @override
   void initState() {
     super.initState();
 
-    loadSavedTime();
-    print('init duration $durations');
+    loadSavedTime(); //Function call to load saved durations from SharedPreferences
+
+    // Create timers for stored durations
+    Future.wait(List.generate(durations.length, (index) => createTimer(index)))
+        .then((List<Timer> createdTimers) {
+      setState(() {
+        timers.addAll(createdTimers);
+        print(timers);
+        print(durations);
+      });
+    });
   }
 
   void loadSavedTime() async {
     SharedPreferences prefs = SharedPreferencesManager._preferences;
     List<String>? savedTimes = prefs.getStringList('savedTime');
-    print(savedTimes);
+    // Load saved durations from SharedPreferences and convert them to Duration objects
     if (savedTimes != null && savedTimes.isNotEmpty) {
       setState(() {
         durations = savedTimes.map((timeString) {
-          // Om sparad tid är 'Done', sätt den till 0
           if (timeString == 'Done') {
             return Duration.zero;
           }
@@ -45,56 +48,33 @@ class _SecondScreenState extends State<SecondScreen> {
     }
   }
 
-  void random() {
-    int random1(int min, int max) {
+// Function to create a new random Duration with random number between 5-20 secunds
+  Duration createNewDuration() {
+    int random(int min, int max) {
       return min + Random().nextInt(max - min);
     }
 
-    int randomNumber = random1(5, 21);
-    countdownDuration = Duration(seconds: randomNumber);
+    int randomNumber = random(5, 21);
+    Duration duration = Duration(seconds: randomNumber);
+    return duration;
   }
 
+  // Function to reset the stored durations
   void reset() async {
     SharedPreferences prefs = SharedPreferencesManager._preferences;
     prefs.setStringList('savedTime', []);
     setState(() {
       durations.clear();
-
-      done = false;
-    });
-
-    durations.add(countdownDuration);
-  }
-
-  void addTime() {
-    setState(() {
-      for (int i = 0; i < durations.length; i++) {
-        if (durations[i].inSeconds > 0) {
-          durations[i] = Duration(seconds: durations[i].inSeconds - 1);
-          print(durations);
-        } else {
-          durations[i] = Duration.zero;
-          done = true;
-        }
-      }
     });
   }
 
-  void startTimer(Duration duration, int index) async {
-    if (countdownDuration != null) {
-      // isRunning = true;
-
-      countdownDuration = duration;
-
-      if (duration == Duration.zero) {
-        random(); //
-      } else {
-        countdownDuration = duration;
-      }
-      timer =
-          Timer.periodic(const Duration(seconds: 1), (_) => updateTimer(index));
-    }
+  // Function to create a Timer for a duration at a specific index
+  Future<Timer> createTimer(int index) async {
+    Timer timer =
+        Timer.periodic(const Duration(seconds: 1), (_) => updateTimer(index));
+    return timer;
   }
+  // Function to update the duration at a specific index
 
   void updateTimer(int index) {
     setState(() {
@@ -106,71 +86,41 @@ class _SecondScreenState extends State<SecondScreen> {
     });
   }
 
+  // Function to stop the timer at a specific index and save durations to SharedPreferences
   void stopTimer(int index) async {
     // saves data in device ?
     SharedPreferences prefs = SharedPreferencesManager._preferences;
-    isRunning = false;
-    if (timer != null) {
-      timer!.cancel();
 
-      List<String> newDurationList = [];
-
-      for (Duration d in durations) {
-        newDurationList.add(d.inSeconds.toString());
-      }
-
-      prefs.setStringList('savedTime', newDurationList);
-      print(' pref setTime  $prefs');
-      print(newDurationList);
-
-      print('Saved time at index $index: ${durations[index]}');
-    }
+    timers[index].cancel();
+    List<String> newDurationList =
+        durations.map((d) => d.inSeconds.toString()).toList();
+    prefs.setStringList('savedTime', newDurationList);
   }
 
-  void restartSavedTimers() async {
+  // Function to save durations to SharedPreferences
+  void saveDurations() {
     SharedPreferences prefs = SharedPreferencesManager._preferences;
-    List<String>? savedTimes = prefs.getStringList('savedTime');
-
-    if (savedTimes != null && savedTimes.isNotEmpty) {
-      setState(() {
-        durations.clear();
-        for (String savedTime in savedTimes) {
-          Duration savedDuration = Duration(seconds: int.parse(savedTime));
-          durations.add(savedDuration);
-          startTimer(savedDuration, durations.indexOf(savedDuration));
-        }
-      });
-    }
+    List<String> newDurationList =
+        durations.map((d) => d.inSeconds.toString()).toList();
+    prefs.setStringList('savedTime', newDurationList);
+    Navigator.of(context).pop();
   }
 
   @override
   void dispose() {
     super.dispose();
-  }
-
-  void saveTimes() async {
-    SharedPreferences prefs = SharedPreferencesManager._preferences;
-
-    List<String> timeStrings = durations.map((duration) {
-      if (duration.inSeconds <= 0) {
-        return 'Done';
-      }
-      return duration.inSeconds.toString();
-    }).toList();
-    await prefs.setStringList('savedTimes', timeStrings);
-
-    setState(() {});
+    saveDurations();
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
+          // leading: BackButton(onPressed: saveDurations),
           title: Text('Second Screen'),
           actions: [
             IconButton(
               onPressed: reset,
-              icon: const Icon(Icons
-                  .clear), // Här använder du en "clear" ikon, kan ändras till vad du vill
+              icon: const Icon(Icons.clear),
             ),
           ],
         ),
@@ -179,23 +129,19 @@ class _SecondScreenState extends State<SecondScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
-                child: BuildTime(),
+                child: buildTime(),
               ),
               Padding(
                 padding: const EdgeInsets.only(bottom: 18.00),
                 child: ElevatedButton.icon(
                   onPressed: () {
                     setState(() {
-                      random();
-                      durations.add(countdownDuration);
-
-                      if (durations.isNotEmpty) {
-                        startTimer(countdownDuration, durations.length - 1);
-                      }
-
-                      // saveTimes();
-
-                      // Lägg till ny tid
+                      Duration newDuration = createNewDuration();
+                      durations.add(newDuration);
+                      Future<Timer> newTimer = createTimer(timers.length);
+                      newTimer.then((value) {
+                        timers.add(value);
+                      });
                     });
                   },
 
@@ -232,7 +178,7 @@ class _SecondScreenState extends State<SecondScreen> {
         ),
       );
 
-  Widget BuildTime() {
+  Widget buildTime() {
     return ListView.builder(
       itemCount: durations.length,
       itemBuilder: (BuildContext context, int index) {
@@ -278,11 +224,13 @@ class _SecondScreenState extends State<SecondScreen> {
                 children: [
                   FloatingActionButton(
                       onPressed: () async {
-                        restartSavedTimers;
-                        startTimer(countdownDuration, index);
+                        // crate new timer and replace in index
+                        createTimer(index).then((value) {
+                          timers[index] = value;
+                        });
                       },
                       backgroundColor: Colors.green,
-                      elevation: 35, // Ikon som visas på knappen
+                      elevation: 35,
                       heroTag: 'playButton_$index',
                       child: const Icon(Icons.play_arrow)),
                   Text(
@@ -300,10 +248,10 @@ class _SecondScreenState extends State<SecondScreen> {
                       stopTimer(index);
                     },
 
-                    tooltip: 'Lägg till',
-                    child: Icon(Icons.stop), // Ikon som visas på knappen
+                    tooltip: 'Lägg till', // Ikon som visas på knappen
                     backgroundColor: Colors.red,
                     heroTag: 'stopButton_$index',
+                    child: const Icon(Icons.stop),
                   ),
                 ],
               ),

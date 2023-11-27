@@ -1,3 +1,4 @@
+import 'package:count_down/downcounter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'second_screen.dart';
@@ -13,7 +14,6 @@ class FirstScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        
         iconTheme: IconThemeData(color: Colors.deepOrange),
         title: const Text('First Screen'),
         actions: [
@@ -44,7 +44,10 @@ class FirstScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => const SecondScreen()),
                 );
               },
-              child: const Text('Go to Second Screen',style: TextStyle(color: Colors.green),),
+              child: const Text(
+                'Go to Second Screen',
+                style: TextStyle(color: Colors.green),
+              ),
             )
                 .animate()
                 .then()
