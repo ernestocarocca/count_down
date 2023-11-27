@@ -138,7 +138,8 @@ class _SecondScreenState extends State<SecondScreen> {
                     setState(() {
                       Duration newDuration = createNewDuration();
                       durations.add(newDuration);
-                      Future<Timer> newTimer = createTimer(timers.length);
+                      Future<Timer> newTimer =
+                          createTimer(timers.length); //nyt nu kl 08:41
                       newTimer.then((value) {
                         timers.add(value);
                       });
@@ -152,7 +153,8 @@ class _SecondScreenState extends State<SecondScreen> {
 
                     elevation: MaterialStateProperty.all<double>(15.0),
                     shadowColor: MaterialStateProperty.all<Color>(
-                        Colors.grey), // Ange önskad skuggfärg
+                      Colors.black,
+                    ),
                     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.0)),
@@ -216,39 +218,41 @@ class _SecondScreenState extends State<SecondScreen> {
               margin: const EdgeInsets.only(right: 4, left: 4, top: 5),
               padding: const EdgeInsets.all(3.0),
               decoration: BoxDecoration(
-                color: Colors.amberAccent,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   FloatingActionButton(
-                      onPressed: () async {
-                        // crate new timer and replace in index
-                        createTimer(index).then((value) {
-                          timers[index] = value;
-                        });
-                      },
-                      backgroundColor: Colors.green,
-                      elevation: 35,
-                      heroTag: 'playButton_$index',
-                      child: const Icon(Icons.play_arrow)),
-                  Text(
-                    time2,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                      fontSize: 71,
+                    onPressed: () async {
+                      // Create new timer and replace it at the specified index
+                      createTimer(index).then((value) {
+                        timers[index] = value;
+                      });
+                    },
+                    backgroundColor: Colors.green,
+                    elevation: 35,
+                    heroTag: 'playButton_$index',
+                    child: const Icon(Icons.play_arrow),
+                  ),
+                  SizedBox(
+                    width: 170,
+                    child: Text(
+                      time2,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        fontSize: 65,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                   FloatingActionButton(
                     elevation: 35,
-
                     onPressed: () async {
                       stopTimer(index);
                     },
-
-                    tooltip: 'Lägg till', // Ikon som visas på knappen
+                    tooltip: 'Lägg till', // Icon thata Shows the button
                     backgroundColor: Colors.red,
                     heroTag: 'stopButton_$index',
                     child: const Icon(Icons.stop),
@@ -256,7 +260,7 @@ class _SecondScreenState extends State<SecondScreen> {
                 ],
               ),
             ),
-          )
+          ),
         ],
       );
 }

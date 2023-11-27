@@ -35,23 +35,23 @@ class FirstScreen extends StatelessWidget {
                     'This is the first screen',
                     style: TextStyle(color: Colors.black),
                   ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // Navigera till andra skärmen när knappen trycks
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SecondScreen()),
-                );
-              },
-              child: const Text(
-                'Go to Second Screen',
-                style: TextStyle(color: Colors.green),
-              ),
-            )
-                .animate()
-                .then()
-                .shake(duration: const Duration(milliseconds: 200)),
+            const SizedBox(height: 30),
+            Animate(
+              child: ElevatedButton(
+                onPressed: () {
+                  // Navigera till andra skärmen när knappen trycks
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SecondScreen()),
+                  );
+                },
+                child: const Text(
+                  'Go to Second Screen',
+                  style: TextStyle(color: Colors.green),
+                ),
+              ).animate().slideX(duration: const Duration(milliseconds: 150)).shake(duration: const Duration(milliseconds: 260)),
+            ),
           ],
         ),
       ),
